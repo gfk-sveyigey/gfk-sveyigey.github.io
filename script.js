@@ -1,126 +1,172 @@
 const avatar = document.getElementById('avatar');
 const html = document.documentElement;
 const styles = window.getComputedStyle(document.documentElement);
-const overlay = document.getElementById('overlay');
+const qrcodeOverlay = document.getElementById('overlay');
 const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
 let qrcodeURL = null;
 
 
 function updateAvatar(theme) {
-    if (!overlay.hidden && qrcodeURL != null) {
-        generateQRCode(qrcodeURL);
-    } else {
-        avatar.src = theme === 'dark' ? 'black.jpg' : 'white.jpg';
-    };
+	if (!qrcodeOverlay.hidden && qrcodeURL != null) {
+		generateQRCode(qrcodeURL);
+	} else {
+		avatar.src = theme === 'dark' ? 'black.jpg' : 'white.jpg';
+	};
 }
 
 function showOverlay() {
-    overlay.hidden = false; 
+	qrcodeOverlay.hidden = false;
 };
 
 function hideOverlay() {
-    overlay.hidden = true; 
+	qrcodeOverlay.hidden = true;
 };
 
 function handleThemeChange() {
-    if (!localStorage.getItem('theme')) {
-        const newTheme = prefersDarkScheme.matches ? 'dark' : 'light';
-        html.setAttribute('data-theme', newTheme);
-        updateAvatar(newTheme);
-    }
+	if (!localStorage.getItem('theme')) {
+		const newTheme = prefersDarkScheme.matches ? 'dark' : 'light';
+		html.setAttribute('data-theme', newTheme);
+		updateAvatar(newTheme);
+	}
 };
 
 function blobToDataURL(blob, callback) {
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    callback(e.target.result);
-  };
-  reader.readAsDataURL(blob);
+	var reader = new FileReader();
+	reader.onload = function(e) {
+		callback(e.target.result);
+	};
+	reader.readAsDataURL(blob);
 }
 
 function generateQRCode(text) {
-    const currentTheme = html.getAttribute('data-theme');
-    const qrcode = new QRCodeStyling({
-        data: text,
-        image: currentTheme === 'dark' ? 'black.jpg' : 'white.jpg',
-        shape: "square",
-        width: 800,
-        height: 800,
-        margin: 40,
-        qrOptions: {
-            "typeNumber": "5",
-            "mode": "Byte",
-            "errorCorrectionLevel": "Q"
-        },
-        imageOptions: {
-            saveAsBlob: true,
-            hideBackgroundDots: true,
-            imageSize: 0.3,
-            margin: 10,
-        },
-        dotsOptions: {
-            type: "rounded",
-            color: styles.getPropertyValue('--text-color'),
-            roundSize: true
-        },
-        backgroundOptions: {
-            color: "transparent "
-        },
-        cornersSquareOptions: {
-            type: "extra-rounded",
-            color: styles.getPropertyValue('--text-color'),
-            gradient: null
-        },
-        cornersDotOptions: {
-            type: "dot",
-            color: styles.getPropertyValue('--text-color'),
-            gradient: null
-        }
-    });
+	const currentTheme = html.getAttribute('data-theme');
+	const qrcode = new QRCodeStyling({
+		data: text,
+		image: currentTheme === 'dark' ? 'black.jpg' : 'white.jpg',
+		shape: "square",
+		width: 800,
+		height: 800,
+		margin: 40,
+		qrOptions: {
+			"typeNumber": "5",
+			"mode": "Byte",
+			"errorCorrectionLevel": "Q"
+		},
+		imageOptions: {
+			saveAsBlob: true,
+			hideBackgroundDots: true,
+			imageSize: 0.3,
+			margin: 10,
+		},
+		dotsOptions: {
+			type: "rounded",
+			color: styles.getPropertyValue('--text-color'),
+			roundSize: true
+		},
+		backgroundOptions: {
+			color: "transparent "
+		},
+		cornersSquareOptions: {
+			type: "extra-rounded",
+			color: styles.getPropertyValue('--text-color'),
+			gradient: null
+		},
+		cornersDotOptions: {
+			type: "dot",
+			color: styles.getPropertyValue('--text-color'),
+			gradient: null
+		}
+	});
 
-    try {
-        qrcode.getRawData("png").then((buffer) => {
-            avatar.src = URL.createObjectURL(buffer);
-            showOverlay();
-            qrcodeURL = text;
-        });
-    } catch (e) {
-        console.error("生成失败:", e);
-    }
+	try {
+		qrcode.getRawData("png").then((buffer) => {
+			avatar.src = URL.createObjectURL(buffer);
+			showOverlay();
+			qrcodeURL = text;
+		});
+	} catch (e) {
+		console.error("生成失败:", e);
+	}
 }
 
+function loadingOverlayDestroy() {
+	const loadingOverlay = document.getElementById('loading');
+	const loader = this.document.getElementById('loader');
+	document.fonts.ready.then(function() {
+		if (loadingOverlay) {
+			loader.classList.add('stop');
+			setTimeout(() => {
+				loadingOverlay.style.opacity = 0;
+			}, 250);
+			setTimeout(() => {
+				loadingOverlay.remove();
+			}, 750);
+		}
+	});
+};
 
-if (localStorage.getItem('theme')) {
-    localStorage.removeItem('theme');
-}
 
-if (prefersDarkScheme.matches) {
-    html.setAttribute('data-theme', 'dark');
-    updateAvatar('dark');
-} else {
-    updateAvatar('light');
-}
-
-prefersDarkScheme.addEventListener('change', handleThemeChange);
-
-document.addEventListener('visibilitychange', handleThemeChange);
-
-window.addEventListener('pageshow', handleThemeChange);
-
-hideOverlay();
-
-avatar.addEventListener('click', () => {
-    const currentTheme = html.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    
-    html.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    updateAvatar(newTheme);
+document.addEventListener('DOMContentLoaded', function() {
+	main();
 });
 
-overlay.addEventListener('click', () => {
-    const currentTheme = html.getAttribute('data-theme');
-    hideOverlay();
-    qrcodeURL = null;
-    updateAvatar(currentTheme);
-});
+function main() {
+	fetch('https://api.github.com/users/gfk-sveyigey')
+		.then(response => {
+			if (!response.ok) {
+				throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+			}
+			return response.json();
+		})
+		.then(data => {
+			if (data.name === undefined || data.bio === undefined) {
+				throw new Error("数据格式异常");
+			}
+			const nameElement = document.getElementById("name");
+			const bioElement = document.getElementById("bio");
+			nameElement.textContent = data.name;
+			bioElement.textContent = data.bio;
+		})
+		.catch(error => {
+			console.error("加载失败:", error);
+		})
+		.finally(() => {
+			loadingOverlayDestroy();
+		});
+
+
+	if (localStorage.getItem('theme')) {
+		localStorage.removeItem('theme');
+	}
+
+	if (prefersDarkScheme.matches) {
+		html.setAttribute('data-theme', 'dark');
+		updateAvatar('dark');
+	} else {
+		updateAvatar('light');
+	}
+
+	prefersDarkScheme.addEventListener('change', handleThemeChange);
+
+	document.addEventListener('visibilitychange', handleThemeChange);
+
+	window.addEventListener('pageshow', handleThemeChange);
+
+	hideOverlay();
+
+	avatar.addEventListener('click', () => {
+		const currentTheme = html.getAttribute('data-theme');
+		const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+		html.setAttribute('data-theme', newTheme);
+		localStorage.setItem('theme', newTheme);
+		updateAvatar(newTheme);
+	});
+
+	qrcodeOverlay.addEventListener('click', () => {
+		const currentTheme = html.getAttribute('data-theme');
+		hideOverlay();
+		qrcodeURL = null;
+		updateAvatar(currentTheme);
+	});
+};
