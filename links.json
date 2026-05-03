@@ -12,15 +12,15 @@
     "qr": false
   },
   {
-    "id": "netease",
-    "icon": "icons/netease.svg",
-    "url": "https://music.163.com/#/user?id=294222382",
+    "id": "whatsapp",
+    "icon": "icons/whatsapp.svg",
+    "url": "https://wa.me/qr/QGZAURWVRKIPC1",
     "qr": false
   },
   {
-    "id": "wechat",
-    "icon": "icons/wechat.svg",
-    "url": "https://u.wechat.com/ELt15-I36FUff-p7ezE5rTY?s=2",
-    "qr": true
+    "id": "discord",
+    "icon": "icons/discord.svg",
+    "url": "https://discord.com/channels/1494696742287835300/1494696744095846576",
+    "qr": false
   }
 ]

@@ -49,7 +49,6 @@ async function loadLinks() {
     for (const item of config) {
         const a = document.createElement('a');
         a.className = 'link';
-        a.title = item.id;
         // 对于需要生成二维码的链接，不设置实际跳转地址
         a.href = item.qr ? '#' : item.url;
         a.target = '_blank';
@@ -102,7 +101,6 @@ async function generateQRCode(text, icon) {
             let svgText = await resp.text();
             const themeColor = styles.getPropertyValue('--text-color').trim();
             svgText = svgText.replace(/<svg([^>]*)stroke="[^"]*"([^>]*)>/i, `<svg$1stroke="${themeColor}"$2>`);
-            console.log(svgText)
             const blob = new Blob([svgText], { type: 'image/svg+xml' });
             imageSrc = URL.createObjectURL(blob);
         } catch (e) {
@@ -121,7 +119,7 @@ async function generateQRCode(text, icon) {
             height: 800,
             margin: 40,
             qrOptions: {
-                "typeNumber": "5",
+                "typeNumber": 0,
                 "mode": "Byte",
                 "errorCorrectionLevel": "Q"
             },
